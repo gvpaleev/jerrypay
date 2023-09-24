@@ -91,7 +91,7 @@ bot.use(async (ctx, next) => {
 // Handle the /start command.
 bot.command("start", async (ctx) => {
   let {id,username}= ctx.from
-  logger.info(`/start от пользователя username: ${username} id: ${id}`);
+  // logger.info(`/start от пользователя username: ${username} id: ${id}`);
   
   await ctx.reply(await getMessangeWelcome(), {
     parse_mode: "HTML",
