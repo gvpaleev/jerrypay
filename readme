@@ -1,0 +1,13 @@
+get
+http://192.168.0.2:7770/getPriceMoneroToMir
+
+get
+http://192.168.0.2:7771/wallet/createSubAccountForReplenishment
+post
+http://192.168.0.2:7771/wallet/getTxsForSubAddressIndex
+{
+	"addressIndex":76
+}
+
+
+

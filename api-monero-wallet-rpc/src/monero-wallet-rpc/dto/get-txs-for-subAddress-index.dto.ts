@@ -1,6 +1,6 @@
 import { IsNumber } from 'class-validator';
 
 export class GetTxsForSubAddressIndexDto {
-  // @IsNumber()
+  @IsNumber()
   addressIndex: number;
 }

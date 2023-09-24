@@ -1,35 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Builder,By} from "selenium-webdriver";
 import {Options} from 'selenium-webdriver/chrome.js';
 import { pino } from 'pino';
 
-const fileTransport = pino.transport({
-    target: 'pino/file',
-    options: { destination: `${__dirname}/app.log` },
-  });
+// const fileTransport = pino.transport({
+//     target: 'pino/file',
+//     options: { destination: `${__dirname}/app.log` },
+//   });
 
-const logger = pino({
-    timestamp: pino.stdTimeFunctions.isoTime,
-    formatters: {
-        level: (label) => {
-          return { level: label.toUpperCase() };
-        }
-    },
+// const logger = pino({
+//     timestamp: pino.stdTimeFunctions.isoTime,
+//     formatters: {
+//         level: (label) => {
+//           return { level: label.toUpperCase() };
+//         }
+//     },
     
-},fileTransport)
+// },fileTransport)
 
 @Injectable()
 export class PriceMoneroToMirService {
     price: { amount: number; time: number; };
+
+      private readonly logger = new Logger(PriceMoneroToMirService.name);
+
     constructor(){
+        
         this.price={
-            amount:10,
+            amount:14000,
             time:+new Date
         }
     }
     async getPrice(){
 
-        logger.info('getPrice')
+        // logger.info('getPrice')
 
         if((+new Date) - this.price.time < 30000){
             return this.price.amount
@@ -48,7 +52,7 @@ export class PriceMoneroToMirService {
 
         this.price.amount=priceXmr.replace(' ','');
         this.price.time= +new Date;
-        console.log(priceXmr.replace(' ',''));
+        this.logger.log('new price '+priceXmr.replace(' ',''));
         return priceXmr.replace(' ','');
     }
 }
