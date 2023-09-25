@@ -41,9 +41,13 @@ export class MoneroService {
            })
         }
         
-        if(account.balanceMonero!=0){
+        if(account.balanceMonero>0){
             let priceMonero =  await this.getPriceMonero();
             account.balanceRub = (account.balanceMonero/1000000000000)*priceMonero
+            account.save()
+        }else{
+            account.balanceMonero= 0;
+            account.balanceRub = 0;
             account.save()
         }
         
@@ -52,7 +56,7 @@ export class MoneroService {
 
     async getTrxSubAccount(id:number){
         let trx = await axios.post(
-                        'http://127.0.0.1:3001/wallet/getTxsForSubAddressIndex',
+            `${this.configService.get('URL_API_WALLET_RPC')}/wallet/getTxsForSubAddressIndex`,
                         {
                          addressIndex: id  
                             
@@ -65,7 +69,7 @@ export class MoneroService {
     }
 
     async getPriceMonero(){
-        let priceMonero = await axios.get('http://127.0.0.1:3003/getPriceMoneroToMir')
+        let priceMonero = await axios.get(`${this.configService.get('URL_API_BESTCHANGE')}/getPriceMoneroToMir`);
         return Math.ceil(priceMonero.data);
 
     }

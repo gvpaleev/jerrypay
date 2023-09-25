@@ -1,15 +1,18 @@
 const { Bot, InputFile, InputMediaBuilder } = require("grammy");
-const { hydrate, HydrateFlavor } = require("@grammyjs/hydrate");
+const { hydrate } = require("@grammyjs/hydrate");
+const { hydrateFiles } = require("@grammyjs/files");
 const fs = require("fs");
 const { default: axios } = require("axios");
-const { exec } = require("child_process");
+const execSync = require("child_process").execSync;
 const fsPromises = fs.promises;
 const logger = require('./logger');
 require('dotenv').config()
 
 
 // Create an instance of the `Bot` class and pass your bot token to it.
-const bot = new Bot(process.env.BOT_TOKEN); // <-- put your bot token between the ""
+const bot = new Bot(process.env.BOT_TOKEN); 
+bot.api.config.use(hydrateFiles(bot.token));
+
 bot.use(hydrate());
 //replyWithAutoDelete
 bot.use(async (ctx, next) => {
@@ -133,39 +136,77 @@ try{
 })
 
 bot.command("getBalance",async (ctx)=>{
-  let {id,username}= ctx.from
-  logger.info(`/getBalance от пользователя username: ${username} id: ${id}`);
+  try{
+    let {id,username}= ctx.from
+    logger.info(`/getBalance от пользователя username: ${username} id: ${id}`);
 
-  let   balance = (await axios.post("http://127.0.0.1:3002/getBalance", {
+    let   balance = (await axios.post(`${process.env.URL_GATEWAY}/account/getBalance`, {
 
-    uid: ctx.from.id
+      uid: 't'+ctx.from.id
+      
+    })).data;
+
     
-  })).data;
-
+    ctx.  replyWithAutoDelete(balance.balanceRub);
+  }catch(e){
+    console.log(e)
+  }
   
-  ctx.  replyWithAutoDelete(balance);
 
 })
-bot.on("message", async (ctx) => {
+bot.on(":text", async (ctx) => {
+  ctx.reply('text');
   //   ctx.replyWithAutoDelete("sadasd");
-  let pathPhoto = "/github/mvp-monero-pay-tg-bot/photo.png";
-  let caption =
-    '<b>Hi!</b> <i>Welcome</i> to <a href="https://grammy.dev">grammY</a>.';
-  ctx.replyWithPhotoAutoDelete(pathPhoto, caption,secForDelete =60);
-  //   await ctx.replyWithPhoto(a, {
-  //     caption:
-  //       '<b>Hi!</b> <i>Welcome</i> to <a href="https://grammy.dev">grammY</a>.',
-  //     parse_mode: "HTML",
-  //   });
-  // await ctx.api.sendPhoto(
-  //   ctx.from.id,
-  //   new InputFile("/github/mvp-monero-pay-tg-bot/photo.png"),
-  //   {
-  //     caption: "photo.jpg",
-  //   }
-  // );
+  // let pathPhoto = "/github/mvp-monero-pay-tg-bot/photo.png";
+  // let caption =
+  //   '<b>Hi!</b> <i>Welcome</i> to <a href="https://grammy.dev">grammY</a>.';
+  // ctx.replyWithPhotoAutoDelete(pathPhoto, caption,secForDelete =60);
+  // //   await ctx.replyWithPhoto(a, {
+  // //     caption:
+  // //       '<b>Hi!</b> <i>Welcome</i> to <a href="https://grammy.dev">grammY</a>.',
+  // //     parse_mode: "HTML",
+  // //   });
+  // // await ctx.api.sendPhoto(
+  // //   ctx.from.id,
+  // //   new InputFile("/github/mvp-monero-pay-tg-bot/photo.png"),
+  // //   {
+  // //     caption: "photo.jpg",
+  // //   }
+  // // );
 });
+bot.on(":photo", async (ctx) => {
 
+  const file = await ctx.getFile();
+  // Download the file to a temporary location.
+  const path = await file.download(file.file_path);
+  try{
+    let zbarimgOut =  (await execSync(`zbarimg ${file.file_path}`)).toString();
+    ctx.reply(zbarimgOut);
+
+  }catch(e){
+    ctx.reply('QR-code не распознан');
+    
+  }
+
+
+  //   ctx.replyWithAutoDelete("sadasd");
+  // let pathPhoto = "/github/mvp-monero-pay-tg-bot/photo.png";
+  // let caption =
+  //   '<b>Hi!</b> <i>Welcome</i> to <a href="https://grammy.dev">grammY</a>.';
+  // ctx.replyWithPhotoAutoDelete(pathPhoto, caption,secForDelete =60);
+  // //   await ctx.replyWithPhoto(a, {
+  // //     caption:
+  // //       '<b>Hi!</b> <i>Welcome</i> to <a href="https://grammy.dev">grammY</a>.',
+  // //     parse_mode: "HTML",
+  // //   });
+  // // await ctx.api.sendPhoto(
+  // //   ctx.from.id,
+  // //   new InputFile("/github/mvp-monero-pay-tg-bot/photo.png"),
+  // //   {
+  // //     caption: "photo.jpg",
+  // //   }
+  // // );
+});
 // Now that you specified how to handle messages, you can start your bot.
 // This will connect to the Telegram servers and wait for messages.
 

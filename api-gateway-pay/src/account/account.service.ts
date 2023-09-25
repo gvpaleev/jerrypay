@@ -6,19 +6,21 @@ import { ModelType } from 'typegoose';
 import { MoneroService } from 'src/monero/monero.service';
 import { PayDto } from './dto/pay.dto';
 import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AccountService {
     constructor(
         @InjectModel(AccountModel)
         private readonly accountModel: ModelType<AccountModel>,
-        @Inject(forwardRef(() => MoneroService)) private readonly moneroService: MoneroService
+        @Inject(forwardRef(() => MoneroService)) private readonly moneroService: MoneroService,
+        private readonly configService:ConfigService
         //  private readonly moneroService: MoneroService
 
     ){}
 
     async getBalance(dto: GetBalanceDto){
-        let account =  await this.getAccount(dto.uid);
+        let account =  await this.getAccount(dto.uid);  
 
         await this.moneroService.updateBalance(account);
         
@@ -42,12 +44,20 @@ export class AccountService {
 
     async pay(dto: PayDto){ 
         let account = await this.getBalance({uid:dto.uid});
-        let amountQuery = parseInt(dto.url.split('&')[2].split('=')[1])/100;
-        if(account.balanceRub < amountQuery){
-            return 'Недостаточно средств'
-        }
+        let amountQuery = parseFloat((await axios.post(
+            `${this.configService.get('URL_API_BANKS_PAY')}/tinkoff/getAmountPay`,
+            {
+             url: dto.url  
+            }
+           
+          )).data.replace(',','.'))
+          
+        // if(account.balanceRub < amountQuery){
+        //     return 'Недостаточно средств'
+        // }
         await axios.post(
-            'http://127.0.0.1:3000/tinkoff/pay',
+            `${this.configService.get('URL_API_BANKS_PAY')}/tinkoff/getAmountPay`,
+
             {
              url: dto.url  
             }

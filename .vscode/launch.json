@@ -8,6 +8,6 @@
         "type":"node",
         "request": "attach",
         "name":"Debug NestJS",
-        "port": 9239
+        "port": 9229
     }]
 }

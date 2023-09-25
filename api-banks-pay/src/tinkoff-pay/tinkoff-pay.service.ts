@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TinkoffPayDto } from './dto/tinkoff-pay.dto';
 import {remote} from 'webdriverio'
 import { ConfigService } from '@nestjs/config';
+import { GetAmountPay } from './dto/get-amount-pay.dto';
 
 const capabilities = {
     platformName: 'Android',
@@ -108,6 +109,72 @@ export class TinkoffPayService {
     }
   }
       return 'goot'
+    }
+
+    async getAmountPay(dto: GetAmountPay){
+      // console.log(dto.url);
+        // return 'ok'
+        // let a = this.configService.get('EMULATOR_IP');
+    const driverObj = await this.getDriverAndroid();
+
+
+    // await clickToXpath('//android.widget.ImageButton[@content-desc="1 open tab, tap to switch tabs"]');
+    
+
+      await driverObj.driver.navigateTo(dto.url)
+  
+
+  // Переходим в тиньков
+  await clickToXpath('//android.view.View[@content-desc="Тинькофф Банк"]/android.widget.TextView',4500);
+  
+  //Проверка ввода пар!
+  await driverObj.driver.pause(2000);
+
+  let button = await driverObj.driver.$('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.view.ViewGroup/android.widget.TextView');
+  //Вводить ли пароль ?
+  if(await button.isDisplayed()){
+    //7
+    await clickToXpath('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.view.ViewGroup/android.view.ViewGroup[2]/android.widget.Button[7]');
+
+    //0
+    await clickToXpath('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.view.ViewGroup/android.view.ViewGroup[2]/android.widget.Button[10]');
+
+    //8
+    await clickToXpath('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.view.ViewGroup/android.view.ViewGroup[2]/android.widget.Button[8]');
+
+    //3
+    await clickToXpath('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.view.ViewGroup/android.view.ViewGroup[2]/android.widget.Button[3]');
+  
+  }
+
+  
+
+  //Оплатить.
+  
+  // await clickToXpath('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.ScrollView/android.widget.LinearLayout/android.widget.LinearLayout[3]/android.widget.LinearLayout/android.view.ViewGroup/android.widget.Button');
+  driverObj.paramAppium.access=true
+
+  let element = await driverObj.driver.$("/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.ScrollView/android.widget.LinearLayout/android.widget.LinearLayout[3]/android.widget.LinearLayout/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.LinearLayout/android.view.View");
+  
+
+  async function clickToXpath(xPath,sleep=300, sleepIteration=300, iteration=25){
+
+    await driverObj.driver.pause(sleep); 
+  
+  
+    for(let i=0;i<iteration;i++){
+      
+      let button = await driverObj.driver.$(xPath);
+  
+      if(await button.isDisplayed()){
+        return await button.click()
+      }
+      await driverObj.driver.pause(sleepIteration);
+  
+    }
+  }
+    return (await element.getText()).slice(0,-3);
+
     }
 
     async getDriverAndroid(){
